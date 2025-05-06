@@ -115,8 +115,6 @@ struct ad5413_state {
 	struct mutex lock;
 	struct gpio_desc *gpio_reset;
 	struct ad5413_range out_range;
-	// unsigned int dc_dc_mode;
-	// unsigned int dc_dc_ilim;
 	unsigned int slew_time;
 	bool pwr_down;
 	__be32 d32[3];
@@ -124,54 +122,20 @@ struct ad5413_state {
 
 /*
  * Output ranges corresponding to bits [3:0] from DAC_CONFIG register
- * 0000: 0 V to 5 V voltage range
- * 0001: 0 V to 10 V voltage range
- * 0010: ±5 V voltage range
- * 0011: ±10 V voltage range
- * 1000: 0 mA to 20 mA current range
+ * 0011: ±10.5 V voltage range
  * 1001: 0 mA to 24 mA current range
- * 1010: 4 mA to 20 mA current range
- * 1011: ±20 mA current range
- * 1100: ±24 mA current range
- * 1101: -1 mA to +22 mA current range
  */
 enum ad5413_output_range {
-	// AD5413_RANGE_0V_5V,
-	// AD5413_RANGE_0V_10V,
-	// AD5413_RANGE_PLUSMINUS_5V,
-	// AD5413_RANGE_PLUSMINUS_10V,
-	// AD5413_RANGE_0mA_20mA = 8,
-	// AD5413_RANGE_0mA_24mA,
-	// AD5413_RANGE_4mA_24mA,
-	// AD5413_RANGE_PLUSMINUS_20mA,
-	// AD5413_RANGE_PLUSMINUS_24mA,
-	// AD5413_RANGE_MINUS_1mA_PLUS_22mA,
     AD5413_RANGE_PLUSMINUS_10_5V = 0x3,
     AD5413_RANGE_0mA_24mA = 0x9,
 };
 
-// enum ad5413_dc_dc_mode {
-	// AD5413_DCDC_MODE_POWER_OFF,
-	// AD5413_DCDC_MODE_DPC_CURRENT,
-	// AD5413_DCDC_MODE_DPC_VOLTAGE,
-	// AD5413_DCDC_MODE_PPC_CURRENT,
-// };
-
 static const struct ad5413_range ad5413_voltage_range[] = {
-	// { AD5413_RANGE_0V_5V, 0, 5000000 },
-	// { AD5413_RANGE_0V_10V, 0, 10000000 },
-	// { AD5413_RANGE_PLUSMINUS_5V, -5000000, 5000000 },
-	// { AD5413_RANGE_PLUSMINUS_10V, -10000000, 10000000 }
     { AD5413_RANGE_PLUSMINUS_10_5V, -10500000, 10500000 }
 };
 
 static const struct ad5413_range ad5413_current_range[] = {
-	// { AD5413_RANGE_0mA_20mA, 0, 20000},
 	{ AD5413_RANGE_0mA_24mA, 0, 24000 }
-	// { AD5413_RANGE_4mA_24mA, 4, 24000 },
-	// { AD5413_RANGE_PLUSMINUS_20mA, -20000, 20000 },
-	// { AD5413_RANGE_PLUSMINUS_24mA, -24000, 24000 },
-	// { AD5413_RANGE_MINUS_1mA_PLUS_22mA, -1000, 22000 },
 };
 
 static const int ad5413_sr_clk[16] = {
@@ -182,10 +146,6 @@ static const int ad5413_sr_clk[16] = {
 static const int ad5413_sr_step[8] = {
 	4, 12, 64, 120, 256, 500, 1820, 2048
 };
-
-// static const int ad5413_dc_dc_ilim[6] = {
-	// 150000, 200000, 250000, 300000, 350000, 400000
-// };
 
 static int ad5413_spi_reg_read(struct ad5413_state *st, unsigned int addr)
 {
@@ -240,11 +200,6 @@ static int ad5413_spi_write_mask(struct ad5413_state *st,
 
 	return ad5413_spi_reg_write(st, addr, regval);
 }
-
-// static int cmpfunc(const void *a, const void *b)
-// {
-	// return *(int *)a - *(int *)b;
-// }
 
 static int ad5413_find_closest_match(const int *array,
 				     unsigned int size, int val)
@@ -316,60 +271,6 @@ static int ad5413_soft_reset(struct ad5413_state *st)
 
 	return ret;
 }
-
-// static int ad5413_set_dc_dc_conv_mode(struct ad5413_state *st,
-				      // enum ad5413_dc_dc_mode mode)
-// {
-	// int ret;
-
-	// /*
-	 // * The ENABLE_PPC_BUFFERS bit must be set prior to enabling PPC current
-	 // * mode.
-	 // */
-	// if (mode == AD5413_DCDC_MODE_PPC_CURRENT) {
-		// ret  = ad5413_spi_write_mask(st, AD5413_ADC_CONFIG,
-				    // AD5413_ADC_CONFIG_PPC_BUF_MSK,
-				    // AD5413_ADC_CONFIG_PPC_BUF_EN(1));
-		// if (ret < 0)
-			// return ret;
-	// }
-
-	// ret = ad5413_spi_write_mask(st, AD5413_DCDC_CONFIG1,
-				    // AD5413_DCDC_CONFIG1_DCDC_MODE_MSK,
-				    // AD5413_DCDC_CONFIG1_DCDC_MODE_MODE(mode));
-	// if (ret < 0)
-		// return ret;
-
-	// /*
-	 // * Poll the BUSY_3WI bit in the DCDC_CONFIG2 register until it is 0.
-	 // * This allows the 3-wire interface communication to complete.
-	 // */
-	// ret = ad5413_wait_for_task_complete(st, AD5413_DCDC_CONFIG2,
-					    // AD5413_DCDC_CONFIG2_BUSY_3WI_MSK);
-	// if (ret < 0)
-		// return ret;
-
-	// st->dc_dc_mode = mode;
-
-	// return ret;
-// }
-
-// static int ad5413_set_dc_dc_ilim(struct ad5413_state *st, unsigned int ilim)
-// {
-	// int ret;
-
-	// ret = ad5413_spi_write_mask(st, AD5413_DCDC_CONFIG2,
-				    // AD5413_DCDC_CONFIG2_ILIMIT_MSK,
-				    // AD5413_DCDC_CONFIG2_ILIMIT_MODE(ilim));
-	// if (ret < 0)
-		// return ret;
-	// /*
-	 // * Poll the BUSY_3WI bit in the DCDC_CONFIG2 register until it is 0.
-	 // * This allows the 3-wire interface communication to complete.
-	 // */
-	// return ad5413_wait_for_task_complete(st, AD5413_DCDC_CONFIG2,
-					     // AD5413_DCDC_CONFIG2_BUSY_3WI_MSK);
-// }
 
 static int ad5413_slew_rate_set(struct ad5413_state *st,
 				unsigned int sr_clk_idx,
@@ -654,18 +555,6 @@ static const struct iio_chan_spec ad5413_current_ch[] = {
 	AD5413_DAC_CHAN(IIO_CURRENT)
 };
 
-// static bool ad5413_is_valid_mode(enum ad5413_dc_dc_mode mode)
-// {
-	// switch (mode) {
-	// case AD5413_DCDC_MODE_DPC_CURRENT:
-	// case AD5413_DCDC_MODE_DPC_VOLTAGE:
-	// case AD5413_DCDC_MODE_PPC_CURRENT:
-		// return true;
-	// default:
-		// return false;
-	// }
-// }
-
 static int ad5413_crc_disable(struct ad5413_state *st)
 {
 	unsigned int mask;
@@ -702,73 +591,6 @@ static int ad5413_parse_dt(struct ad5413_state *st)
 	const struct ad5413_range *range;
 	int *index, ret;
 
-	// st->dc_dc_ilim = 0;
-	// ret = device_property_read_u32(&st->spi->dev,
-				       // "adi,dc-dc-ilim-microamp", &tmp);
-	// if (ret) {
-		// dev_dbg(&st->spi->dev,
-			// "Missing \"dc-dc-ilim-microamp\" property\n");
-	// } else {
-		// index = bsearch(&tmp, ad5413_dc_dc_ilim,
-				// ARRAY_SIZE(ad5413_dc_dc_ilim),
-				// sizeof(int), cmpfunc);
-		// if (!index)
-			// dev_dbg(&st->spi->dev, "dc-dc-ilim out of range\n");
-		// else
-			// st->dc_dc_ilim = index - ad5413_dc_dc_ilim;
-	// }
-
-	// ret = device_property_read_u32(&st->spi->dev, "adi,dc-dc-mode",
-				       // &st->dc_dc_mode);
-	// if (ret) {
-		// dev_err(&st->spi->dev, "Missing \"dc-dc-mode\" property\n");
-		// return ret;
-	// }
-
-	// if (!ad5413_is_valid_mode(st->dc_dc_mode))
-		// return -EINVAL;
-
-	// if (st->dc_dc_mode == AD5413_DCDC_MODE_DPC_VOLTAGE) {
-		// ret = device_property_read_u32_array(&st->spi->dev,
-						     // "adi,range-microvolt",
-						     // tmparray, 2);
-		// if (ret) {
-			// dev_err(&st->spi->dev,
-				// "Missing \"range-microvolt\" property\n");
-			// return ret;
-		// }
-		// range = ad5413_voltage_range;
-		// size = ARRAY_SIZE(ad5413_voltage_range);
-	// } else {
-		// ret = device_property_read_u32_array(&st->spi->dev,
-						     // "adi,range-microamp",
-						     // tmparray, 2);
-		// if (ret) {
-			// dev_err(&st->spi->dev,
-				// "Missing \"range-microamp\" property\n");
-			// return ret;
-		// }
-		// range = ad5413_current_range;
-		// size = ARRAY_SIZE(ad5413_current_range);
-	// }
-
-	// ret = ad5413_find_out_range(st, range, size, tmparray[0], tmparray[1]);
-	// if (ret) {
-		// dev_err(&st->spi->dev, "range invalid\n");
-		// return ret;
-	// }
-
-	// ret = device_property_read_u32(&st->spi->dev, "adi,slew-time-us", &tmp);
-	// if (ret) {
-		// dev_dbg(&st->spi->dev, "Missing \"slew-time-us\" property\n");
-		// st->slew_time = 0;
-	// } else {
-		// st->slew_time = tmp;
-	// }
-
-	// return 0;
-    
-    
     /* 1)  voltage  */
     ret = device_property_read_u32_array(&st->spi->dev,
                                          "adi,range-microvolt",
@@ -849,16 +671,6 @@ static int ad5413_init(struct ad5413_state *st)
 	if (ret < 0)
 		return ret;
 
-	// /* Set the dc-to-dc current limit */
-	// ret = ad5413_set_dc_dc_ilim(st, st->dc_dc_ilim);
-	// if (ret < 0)
-		// return ret;
-
-	// /* Configure the dc-to-dc controller mode */
-	// ret = ad5413_set_dc_dc_conv_mode(st, st->dc_dc_mode);
-	// if (ret < 0)
-		// return ret;
-
 	/* Configure the output range */
 	ret = ad5413_set_out_range(st, st->out_range.reg);
 	if (ret < 0)
@@ -907,11 +719,6 @@ static int ad5413_probe(struct spi_device *spi)
 	ret = ad5413_parse_dt(st);
 	if (ret < 0)
 		return ret;
-
-	// if (st->dc_dc_mode == AD5413_DCDC_MODE_DPC_VOLTAGE)
-		// indio_dev->channels = ad5413_voltage_ch;
-	// else
-		// indio_dev->channels = ad5413_current_ch;
     
     /* By output range, decide voltage or current channel */
     if (st->out_range.reg == AD5413_RANGE_PLUSMINUS_10_5V)
