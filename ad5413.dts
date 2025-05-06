@@ -1,0 +1,45 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+    compatible = "brcm,bcm2711";
+
+    fragment@0 {
+        target = <&spi0>;
+        __overlay__ {
+            status = "okay";
+        };
+    };
+
+    fragment@1 {
+        target = <&spi0>;
+        __overlay__ {
+            status = "okay";
+            #address-cells = <1>;
+            #size-cells    = <0>;
+
+            ad5413@0 {
+                /* create spi0.0 child node */
+                compatible         = "adi,ad5413";
+                reg                = <0>;
+                spi-max-frequency  = <1000000>;
+                adi,dc-dc-mode     = <2>;
+                adi,range-microvolt= <0 5000000>;
+                adi,slew-time-us   = <10>;
+                status             = "okay";
+            };
+        };
+    };
+	
+	fragment@99 {
+        target = <&spi0>;
+        __overlay__ {
+            #address-cells = <1>;
+            #size-cells = <0>;
+
+            spidev@0 {
+                status = "disabled";
+            };
+        };
+    };
+};
