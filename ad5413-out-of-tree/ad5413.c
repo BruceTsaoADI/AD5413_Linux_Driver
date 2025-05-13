@@ -104,8 +104,6 @@ struct ad5413_range {
  * @lock:	mutex lock
  * @gpio_reset:	gpio descriptor for the reset line
  * @out_range:	struct which stores the output range
- * @dc_dc_mode:	variable which stores the mode of operation
- * @dc_dc_ilim:	variable which stores the dc-to-dc converter current limit
  * @slew_time:	variable which stores the target slew time
  * @pwr_down:	variable which contains whether a channel is powered down or not
  * @d32:	spi transfer buffers
