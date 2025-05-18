@@ -756,6 +756,6 @@ static struct spi_driver ad5413_driver = {
 
 module_spi_driver(ad5413_driver);
 
-MODULE_AUTHOR("Stefan Popa <stefan.popa@analog.com>");
+MODULE_AUTHOR("Bruce Tsao <bruce.tsao@analog.com>");
 MODULE_DESCRIPTION("Analog Devices AD5413 DAC");
 MODULE_LICENSE("GPL v2");
