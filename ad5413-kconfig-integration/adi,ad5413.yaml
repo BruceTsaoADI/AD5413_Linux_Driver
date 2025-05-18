@@ -29,14 +29,12 @@ properties:
     description: Current output range <min, max> in microamps
     enum:
       - [0, 24000]
-	  
+
   adi,slew-time-us:
     description: |
       Output digital slew control time in microseconds
-    type: integer
-
-  reset-gpios:
-    maxItems: 1
+    minimum: 0
+    maximum: 1000000
 
 required:
   - compatible
@@ -46,12 +44,12 @@ required:
 allOf:
   - $ref: /schemas/spi/spi-peripheral-props.yaml#
   - if:
-      required: [adi,range-microamp]
+      required: [adi, range-microamp]
     then:
       properties:
         adi,range-microvolt: false
   - if:
-      required: [adi,range-microvolt]
+      required: [adi, range-microvolt]
     then:
       properties:
         adi,range-microamp: false
