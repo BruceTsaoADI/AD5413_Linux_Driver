@@ -8,13 +8,6 @@
         target = <&spi0>;
         __overlay__ {
             status = "okay";
-        };
-    };
-
-    fragment@1 {
-        target = <&spi0>;
-        __overlay__ {
-            status = "okay";
             #address-cells = <1>;
             #size-cells    = <0>;
 
@@ -23,9 +16,8 @@
                 compatible         = "adi,ad5413";
                 reg                = <0>;
                 spi-max-frequency  = <1000000>;
-                adi,dc-dc-mode     = <2>;
-                adi,range-microvolt= <0 5000000>;
-                adi,slew-time-us   = <10>;
+                adi,range-microvolt= <(-10500000) 10500000>;
+                adi,slew-time-us   = <125>;
                 status             = "okay";
             };
         };
